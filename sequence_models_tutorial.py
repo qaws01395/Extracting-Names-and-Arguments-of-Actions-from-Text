@@ -71,6 +71,8 @@ ix_to_tag = {0: "DET", 1: "NN", 2: "V"}
 EMBEDDING_DIM = 6
 HIDDEN_DIM = 6
 EPOCH = 10
+CROSS_VALID = 10
+LEARNING_RATE = 0.1
 ######################################################################
 # Create the model:
 
@@ -113,7 +115,7 @@ class LSTMTagger(nn.Module):
 
 model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(word_to_ix), len(tag_to_ix))
 loss_function = nn.NLLLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.1)
+optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
 
 # See what the scores are before training
 # Note that element i,j of the output is the score for tag j for word i.
@@ -150,13 +152,14 @@ for epoch in range(EPOCH):  # again, normally you would NOT do 300 epochs, it is
 
 # See what the scores are after training
 with torch.no_grad():
-    test_times = int(round(len(training_data)/10))
+    test_times = int(round(len(training_data)/CROSS_VALID))
     print("times: ", test_times)
     match = 0
     total = 0
-    for i in range(5):
+    for i in range(test_times):
         rand_list = random.choice(training_data)
-        print("rand_list", rand_list[0])
+        print()
+        print(rand_list[0])
 
         # inputs = prepare_sequence("Take,croutons,and,toss,it,with,the,vegetables".split(","), word_to_ix)
     #     inputs = prepare_sequence(training_data[2][0], word_to_ix)
@@ -188,8 +191,10 @@ with torch.no_grad():
         for idx in targets:
             target_list.append(ix_to_tag[idx])
         # print result
-        # print("predicted:  ", result_list)
+        print()
+        print("predicted:  ", result_list)
         print("real value: ", target_list)
+        print("=====")
 
         # calculate accuracy
         # match = 0
@@ -197,7 +202,6 @@ with torch.no_grad():
             if(value == targets[i]): match += 1
 
         total += len(seq_list[1])
-        print(len(seq_list[1]))
 
     accuracy = match/total
     print("accuracy: ",accuracy)
