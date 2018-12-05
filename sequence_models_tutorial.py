@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # -*- coding: utf-8 -*-
 r"""
 Sequence Models and Long-Short Term Memory Networks
@@ -51,6 +52,8 @@ Let's see a quick example.
 """
 
 # Author: Robert Guthrie
+=======
+>>>>>>> origin/master
 
 import torch
 import torch.nn as nn
@@ -59,7 +62,12 @@ import torch.optim as optim
 
 torch.manual_seed(1)
 
+<<<<<<< HEAD
 ######################################################################
+=======
+
+
+>>>>>>> origin/master
 
 lstm = nn.LSTM(3, 3)  # Input dim is 3, output dim is 3
 inputs = [torch.randn(1, 3) for _ in range(5)]  # make a sequence of length 5
@@ -173,8 +181,10 @@ for sent, tags in training_data:
     for word in sent:
         if word not in word_to_ix:
             word_to_ix[word] = len(word_to_ix)
-# print(word_to_ix)
-tag_to_ix = {"DET": 0, "N1": 1, "V": 2, "N2":3, "N3":4}
+print(word_to_ix)
+tag_to_ix = {"DET": 0, "NN": 1, "V": 2}
+ix_to_tag = {0: "DET", 1: "NN", 2: "V"}
+
 
 # These will usually be more like 32 or 64 dimensional.
 # We will keep them small, so we can see how the weights change as we train.
@@ -257,13 +267,10 @@ for epoch in range(300):  # again, normally you would NOT do 300 epochs, it is t
         loss.backward()
         optimizer.step()
 
-print(tag_to_ix)
-test = "peppers prepare that peppers and cook the peppers on the peppers".split();
-print(test)
 # See what the scores are after training
 with torch.no_grad():
-    # print(word_to_ix)
-    inputs = prepare_sequence(test, word_to_ix)
+    inputs = prepare_sequence("Prepare the peppers and Everybody on the grill".split(), word_to_ix)
+#     inputs = prepare_sequence(training_data[2][0], word_to_ix)
     tag_scores = model(inputs)
 
     # The sentence is "the dog ate the apple".  i,j corresponds to score for tag j
@@ -272,33 +279,12 @@ with torch.no_grad():
     # since 0 is index of the maximum value of row 1,
     # 1 is the index of maximum value of row 2, etc.
     # Which is DET NOUN VERB DET NOUN, the correct sequence!
-    print(tag_scores)
 
-
-######################################################################
-# Exercise: Augmenting the LSTM part-of-speech tagger with character-level features
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#
-# In the example above, each word had an embedding, which served as the
-# inputs to our sequence model. Let's augment the word embeddings with a
-# representation derived from the characters of the word. We expect that
-# this should help significantly, since character-level information like
-# affixes have a large bearing on part-of-speech. For example, words with
-# the affix *-ly* are almost always tagged as adverbs in English.
-#
-# To do this, let :math:`c_w` be the character-level representation of
-# word :math:`w`. Let :math:`x_w` be the word embedding as before. Then
-# the input to our sequence model is the concatenation of :math:`x_w` and
-# :math:`c_w`. So if :math:`x_w` has dimension 5, and :math:`c_w`
-# dimension 3, then our LSTM should accept an input of dimension 8.
-#
-# To get the character level representation, do an LSTM over the
-# characters of a word, and let :math:`c_w` be the final hidden state of
-# this LSTM. Hints:
-#
-# * There are going to be two LSTM's in your new model.
-#   The original one that outputs POS tag scores, and the new one that
-#   outputs a character-level representation of each word.
-# * To do a sequence model over characters, you will have to embed characters.
-#   The character embeddings will be the input to the character LSTM.
-#
+    #     print(tag_scores)
+    max_list = torch.max(tag_scores, 1)
+    seq_list = [item.tolist() for item in max_list]
+    print("index: ", seq_list[1])
+    result_list = []
+    for idx in seq_list[1]:
+        result_list.append(ix_to_tag[idx])
+    print(result_list)
