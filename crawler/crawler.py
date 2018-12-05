@@ -16,11 +16,7 @@ for link in dcard_title:
         # print(link)
         links.append(link)
 
-# create header
-# title  = "title" + "," + "category" + "," + "tel" + "," + "addr" + "," + "cost" + "," + "rank" + "," + "counts" + "," + "share" + "," + "collect"
 wikihow_list = open('wikihow_list_Furniture.txt','w')
-# write header
-# wikihow_list.write(title.encode('utf-8') + "\n")
 
 for i in range(len(links)):
 
@@ -33,13 +29,9 @@ for i in range(len(links)):
     header = soup.find('div',{'id':'intro'})
     #
     title = header.h1.a.string.strip()
-    # print('Subject: '+title)
     wikihow_list.write(('Subject: '+title).encode('utf-8') + "\n")
 
     methods = soup.find_all('div', re.compile('section steps'))
-    # methods_text = []
-    # print('method')
-    # print(methods[0])
 
     for index, method in enumerate(methods):
         # print 'Method', (index+1), method.find('span', {'class':'mw-headline'}).string
@@ -48,11 +40,6 @@ for i in range(len(links)):
             wikihow_list.write(('Method '+str(index+1)+' '+method_header).encode('utf-8') + "\n")
         except Exception as e:
             method_header = ""
-        # exception
-        # try:
-        #     method_header = method.find('span', {'class':'mw-headline'}).string
-        # except Exception as e:
-        #     method_header = ""
 
         step_contents_arr = method.find_all('li', 'hasimage')
         for step in step_contents_arr:
@@ -64,33 +51,16 @@ for i in range(len(links)):
                 step_num = ""
             try:
                 step_content = step.find('div', {'class':'step'})
-                description = step_content.text
-                # main_step = step_content.find('b','whb').string
-                # print main_step
-                # print description
-                wikihow_list.write(description.encode('utf-8') + "\n")
-                # try:
-                #     notes_arr = step_content.find_all('li')
-                #     for i, note in enumerate(notes_arr):
-                #         print (i+1), note.string
-                # except Exception as e1:
-                #     notes_arr = ""
 
+                wikihow_list.write(description.encode('utf-8') + "\n")
             except Exception as e:
                 step_content = ""
 
-    # concatenate
-    # result = title + "," + category + "," + tel + "," + addr + "," + cost + "," + rank + "," + counts + "," + share + "," + collect
-    # wikihow_list.write(result.encode('utf-8') + "\n")
-
-    # sleep
-    # time.sleep(randint(1,5))
-    # clear_output()
     print i
 
     sys.stdout.flush()
 wikihow_list.write(('total subjects: '+str(i)).encode('utf-8') + "\n")
-# print 'total', i
+print 'total', i
 wikihow_list.close()
 
 
