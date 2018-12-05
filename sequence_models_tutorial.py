@@ -11,7 +11,6 @@ torch.manual_seed(1)
 
 def prepare_sequence(seq, to_ix):
     idxs = [to_ix[w] for w in seq]
-    # print (idxs)
     return torch.tensor(idxs, dtype=torch.long)
 
 def import_training_data(filename, markfile):
@@ -70,7 +69,7 @@ ix_to_tag = {0: "DET", 1: "NN", 2: "V"}
 # We will keep them small, so we can see how the weights change as we train.
 EMBEDDING_DIM = 6
 HIDDEN_DIM = 6
-EPOCH = 300
+EPOCH = 70
 ######################################################################
 # Create the model:
 
@@ -150,8 +149,12 @@ for epoch in range(EPOCH):  # again, normally you would NOT do 300 epochs, it is
 
 # See what the scores are after training
 with torch.no_grad():
-    inputs = prepare_sequence("Take,croutons,and,toss,it,with,the,vegetables".split(","), word_to_ix)
-#     inputs = prepare_sequence(training_data[2][0], word_to_ix)
+    # prepare test data
+    inputs = prepare_sequence(training_data[0][0], word_to_ix)
+    targets = prepare_sequence(training_data[0][1], tag_to_ix)
+    targets = targets.tolist()
+
+    # predict test data
     tag_scores = model(inputs)
 
     # The sentence is "the dog ate the apple".  i,j corresponds to score for tag j
@@ -162,10 +165,25 @@ with torch.no_grad():
     # Which is DET NOUN VERB DET NOUN, the correct sequence!
 
     #     print(tag_scores)
+
+    # get max probability class
     max_list = torch.max(tag_scores, 1)
     seq_list = [item.tolist() for item in max_list]
-    print("index: ", seq_list[1])
+    # class list
     result_list = []
+    target_list = []
     for idx in seq_list[1]:
         result_list.append(ix_to_tag[idx])
-    print(result_list)
+    for idx in targets:
+        target_list.append(ix_to_tag[idx])
+    # print result
+    print("predicted:  ", result_list)
+    print("real value: ", target_list)
+
+    # calculate accuracy
+    match = 0
+    for i, value in enumerate(seq_list[1]):
+        if(value == targets[i]): match += 1
+
+    accuracy = match/len(seq_list[1])
+    print("accuracy: ",accuracy)
