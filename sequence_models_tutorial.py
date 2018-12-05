@@ -1,60 +1,3 @@
-<<<<<<< HEAD
-# -*- coding: utf-8 -*-
-r"""
-Sequence Models and Long-Short Term Memory Networks
-===================================================
-
-At this point, we have seen various feed-forward networks. That is,
-there is no state maintained by the network at all. This might not be
-the behavior we want. Sequence models are central to NLP: they are
-models where there is some sort of dependence through time between your
-inputs. The classical example of a sequence model is the Hidden Markov
-Model for part-of-speech tagging. Another example is the conditional
-random field.
-
-A recurrent neural network is a network that maintains some kind of
-state. For example, its output could be used as part of the next input,
-so that information can propogate along as the network passes over the
-sequence. In the case of an LSTM, for each element in the sequence,
-there is a corresponding *hidden state* :math:`h_t`, which in principle
-can contain information from arbitrary points earlier in the sequence.
-We can use the hidden state to predict words in a language model,
-part-of-speech tags, and a myriad of other things.
-
-
-LSTM's in Pytorch
-~~~~~~~~~~~~~~~~~
-
-Before getting to the example, note a few things. Pytorch's LSTM expects
-all of its inputs to be 3D tensors. The semantics of the axes of these
-tensors is important. The first axis is the sequence itself, the second
-indexes instances in the mini-batch, and the third indexes elements of
-the input. We haven't discussed mini-batching, so lets just ignore that
-and assume we will always have just 1 dimension on the second axis. If
-we want to run the sequence model over the sentence "The cow jumped",
-our input should look like
-
-.. math::
-
-
-   \begin{bmatrix}
-   \overbrace{q_\text{The}}^\text{row vector} \\
-   q_\text{cow} \\
-   q_\text{jumped}
-   \end{bmatrix}
-
-Except remember there is an additional 2nd dimension with size 1.
-
-In addition, you could go through the sequence one at a time, in which
-case the 1st axis will have size 1 also.
-
-Let's see a quick example.
-"""
-
-# Author: Robert Guthrie
-=======
->>>>>>> origin/master
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -62,12 +5,7 @@ import torch.optim as optim
 
 torch.manual_seed(1)
 
-<<<<<<< HEAD
 ######################################################################
-=======
-
-
->>>>>>> origin/master
 
 lstm = nn.LSTM(3, 3)  # Input dim is 3, output dim is 3
 inputs = [torch.randn(1, 3) for _ in range(5)]  # make a sequence of length 5
@@ -159,7 +97,8 @@ def import_training_data(filename, markfile):
                         yline_words_array[i] = "DET"
 
                 print(( xline_words_array, yline_words_array) )
-                combined.push(line)
+                line = ( xline_words_array, yline_words_array)
+                combined.append(line)
     return combined
 
 corpus_data_name = "cookingTutorialCrawlEdit.csv"
@@ -269,7 +208,7 @@ for epoch in range(300):  # again, normally you would NOT do 300 epochs, it is t
 
 # See what the scores are after training
 with torch.no_grad():
-    inputs = prepare_sequence("Prepare the peppers and Everybody on the grill".split(), word_to_ix)
+    inputs = prepare_sequence("Take,croutons,and,toss,it,with,the,vegetables".split(","), word_to_ix)
 #     inputs = prepare_sequence(training_data[2][0], word_to_ix)
     tag_scores = model(inputs)
 
