@@ -7,64 +7,6 @@ torch.manual_seed(1)
 
 ######################################################################
 
-lstm = nn.LSTM(3, 3)  # Input dim is 3, output dim is 3
-inputs = [torch.randn(1, 3) for _ in range(5)]  # make a sequence of length 5
-
-# initialize the hidden state.
-hidden = (torch.randn(1, 1, 3),
-          torch.randn(1, 1, 3))
-for i in inputs:
-    # Step through the sequence one element at a time.
-    # after each step, hidden contains the hidden state.
-    out, hidden = lstm(i.view(1, 1, -1), hidden)
-
-# alternatively, we can do the entire sequence all at once.
-# the first value returned by LSTM is all of the hidden states throughout
-# the sequence. the second is just the most recent hidden state
-# (compare the last slice of "out" with "hidden" below, they are the same)
-# The reason for this is that:
-# "out" will give you access to all hidden states in the sequence
-# "hidden" will allow you to continue the sequence and backpropagate,
-# by passing it as an argument  to the lstm at a later time
-# Add the extra 2nd dimension
-inputs = torch.cat(inputs).view(len(inputs), 1, -1)
-hidden = (torch.randn(1, 1, 3), torch.randn(1, 1, 3))  # clean out hidden state
-out, hidden = lstm(inputs, hidden)
-# print(out)
-# print(hidden)
-
-
-######################################################################
-# Example: An LSTM for Part-of-Speech Tagging
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#
-# In this section, we will use an LSTM to get part of speech tags. We will
-# not use Viterbi or Forward-Backward or anything like that, but as a
-# (challenging) exercise to the reader, think about how Viterbi could be
-# used after you have seen what is going on.
-#
-# The model is as follows: let our input sentence be
-# :math:`w_1, \dots, w_M`, where :math:`w_i \in V`, our vocab. Also, let
-# :math:`T` be our tag set, and :math:`y_i` the tag of word :math:`w_i`.
-# Denote our prediction of the tag of word :math:`w_i` by
-# :math:`\hat{y}_i`.
-#
-# This is a structure prediction, model, where our output is a sequence
-# :math:`\hat{y}_1, \dots, \hat{y}_M`, where :math:`\hat{y}_i \in T`.
-#
-# To do the prediction, pass an LSTM over the sentence. Denote the hidden
-# state at timestep :math:`i` as :math:`h_i`. Also, assign each tag a
-# unique index (like how we had word\_to\_ix in the word embeddings
-# section). Then our prediction rule for :math:`\hat{y}_i` is
-#
-# .. math::  \hat{y}_i = \text{argmax}_j \  (\log \text{Softmax}(Ah_i + b))_j
-#
-# That is, take the log softmax of the affine map of the hidden state,
-# and the predicted tag is the tag that has the maximum value in this
-# vector. Note this implies immediately that the dimensionality of the
-# target space of :math:`A` is :math:`|T|`.
-#
-#
 # Prepare data:
 
 def prepare_sequence(seq, to_ix):
@@ -96,7 +38,7 @@ def import_training_data(filename, markfile):
                     else:
                         yline_words_array[i] = "DET"
 
-                print(( xline_words_array, yline_words_array) )
+                # print(( xline_words_array, yline_words_array) )
                 line = ( xline_words_array, yline_words_array)
                 combined.append(line)
     return combined
@@ -104,15 +46,14 @@ def import_training_data(filename, markfile):
 corpus_data_name = "cookingTutorialCrawlEdit.csv"
 marked_corpus_data = "mark_CT.csv"
 
-training_data = [
-    ("the dog ate the apple".split(), ["DET", "N1", "V", "DET", "N2"]),
-    ("everybody read that book".split(), ["N1", "V", "DET", "N2"]),
-    ("Tom feed the dog".split(), ["N1", "V", "DET","N2"]),
-    # ("Tom feed the dog".split(), ["NN", "V", "DET","NN"]),
-    ("prepare the grill".split(), ["V", "DET", "N2"]),
-    ("cook the peppers on the grill and give the skin a little charring".split(), ["V", "DET", "N2", "DET", "DET", "N3", "DET", "V", "DET", "N2", "DET", "DET", "N2"])
-]
-
+# training_data = [
+#     ("the dog ate the apple".split(), ["DET", "N1", "V", "DET", "N2"]),
+#     ("everybody read that book".split(), ["N1", "V", "DET", "N2"]),
+#     ("Tom feed the dog".split(), ["N1", "V", "DET","N2"]),
+#     # ("Tom feed the dog".split(), ["NN", "V", "DET","NN"]),
+#     ("prepare the grill".split(), ["V", "DET", "N2"]),
+#     ("cook the peppers on the grill and give the skin a little charring".split(), ["V", "DET", "N2", "DET", "DET", "N3", "DET", "V", "DET", "N2", "DET", "DET", "N2"])
+# ]
 training_data = import_training_data(corpus_data_name, marked_corpus_data)
 
 word_to_ix = {}
@@ -120,7 +61,7 @@ for sent, tags in training_data:
     for word in sent:
         if word not in word_to_ix:
             word_to_ix[word] = len(word_to_ix)
-print(word_to_ix)
+# print(word_to_ix)
 tag_to_ix = {"DET": 0, "NN": 1, "V": 2}
 ix_to_tag = {0: "DET", 1: "NN", 2: "V"}
 
@@ -129,7 +70,7 @@ ix_to_tag = {0: "DET", 1: "NN", 2: "V"}
 # We will keep them small, so we can see how the weights change as we train.
 EMBEDDING_DIM = 6
 HIDDEN_DIM = 6
-
+EPOCH = 300
 ######################################################################
 # Create the model:
 
@@ -182,7 +123,8 @@ with torch.no_grad():
     tag_scores = model(inputs)
     # print(tag_scores)
 
-for epoch in range(300):  # again, normally you would NOT do 300 epochs, it is toy data
+for epoch in range(EPOCH):  # again, normally you would NOT do 300 epochs, it is toy data
+    print('epoch ',epoch)
     for sentence, tags in training_data:
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
