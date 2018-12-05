@@ -1,4 +1,5 @@
 import torch
+import random
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -69,7 +70,7 @@ ix_to_tag = {0: "DET", 1: "NN", 2: "V"}
 # We will keep them small, so we can see how the weights change as we train.
 EMBEDDING_DIM = 6
 HIDDEN_DIM = 6
-EPOCH = 70
+EPOCH = 10
 ######################################################################
 # Create the model:
 
@@ -149,41 +150,56 @@ for epoch in range(EPOCH):  # again, normally you would NOT do 300 epochs, it is
 
 # See what the scores are after training
 with torch.no_grad():
-    # prepare test data
-    inputs = prepare_sequence(training_data[0][0], word_to_ix)
-    targets = prepare_sequence(training_data[0][1], tag_to_ix)
-    targets = targets.tolist()
-
-    # predict test data
-    tag_scores = model(inputs)
-
-    # The sentence is "the dog ate the apple".  i,j corresponds to score for tag j
-    # for word i. The predicted tag is the maximum scoring tag.
-    # Here, we can see the predicted sequence below is 0 1 2 0 1
-    # since 0 is index of the maximum value of row 1,
-    # 1 is the index of maximum value of row 2, etc.
-    # Which is DET NOUN VERB DET NOUN, the correct sequence!
-
-    #     print(tag_scores)
-
-    # get max probability class
-    max_list = torch.max(tag_scores, 1)
-    seq_list = [item.tolist() for item in max_list]
-    # class list
-    result_list = []
-    target_list = []
-    for idx in seq_list[1]:
-        result_list.append(ix_to_tag[idx])
-    for idx in targets:
-        target_list.append(ix_to_tag[idx])
-    # print result
-    print("predicted:  ", result_list)
-    print("real value: ", target_list)
-
-    # calculate accuracy
+    test_times = int(round(len(training_data)/10))
+    print("times: ", test_times)
     match = 0
-    for i, value in enumerate(seq_list[1]):
-        if(value == targets[i]): match += 1
+    total = 0
+    for i in range(5):
+        rand_list = random.choice(training_data)
+        print("rand_list", rand_list[0])
 
-    accuracy = match/len(seq_list[1])
+        # inputs = prepare_sequence("Take,croutons,and,toss,it,with,the,vegetables".split(","), word_to_ix)
+    #     inputs = prepare_sequence(training_data[2][0], word_to_ix)
+        # prepare test data
+        inputs = prepare_sequence(rand_list[0], word_to_ix)
+        targets = prepare_sequence(rand_list[1], tag_to_ix)
+        targets = targets.tolist()
+
+        # predict test data
+        tag_scores = model(inputs)
+
+        # The sentence is "the dog ate the apple".  i,j corresponds to score for tag j
+        # for word i. The predicted tag is the maximum scoring tag.
+        # Here, we can see the predicted sequence below is 0 1 2 0 1
+        # since 0 is index of the maximum value of row 1,
+        # 1 is the index of maximum value of row 2, etc.
+        # Which is DET NOUN VERB DET NOUN, the correct sequence!
+
+        #     print(tag_scores)
+
+        # get max probability class
+        max_list = torch.max(tag_scores, 1)
+        seq_list = [item.tolist() for item in max_list]
+        # class list
+        result_list = []
+        target_list = []
+        for idx in seq_list[1]:
+            result_list.append(ix_to_tag[idx])
+        for idx in targets:
+            target_list.append(ix_to_tag[idx])
+        # print result
+        # print("predicted:  ", result_list)
+        print("real value: ", target_list)
+
+        # calculate accuracy
+        # match = 0
+        for i, value in enumerate(seq_list[1]):
+            if(value == targets[i]): match += 1
+
+        total += len(seq_list[1])
+        print(len(seq_list[1]))
+
+    accuracy = match/total
     print("accuracy: ",accuracy)
+    print("match: ",match)
+    print("total: ",total)
